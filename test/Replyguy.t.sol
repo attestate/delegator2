@@ -7,10 +7,11 @@ import "../src/Replyguy.sol";
 contract ReplyguyTest is Test {
   Replyguy public poster;
   uint256 public cost = 0.1 ether;
+  address public owner = address(this);
   event Comment(address indexed poster, bytes32 indexed url, bytes32 hash);
   receive() external payable {}
   function setUp() public {
-    poster = new Replyguy(cost);
+    poster = new Replyguy(cost, owner);
   }
   function testConfigure() public {
     uint256 nextCost = 1 ether;

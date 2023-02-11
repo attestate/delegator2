@@ -7,9 +7,9 @@ contract Replyguy {
   error ErrNotOwner();
   error ErrValueSize();
   event Comment(address indexed poster, bytes32 indexed url, bytes32 text);
-  constructor(uint256 _cost) {
+  constructor(uint256 _cost, address _owner) {
     cost = _cost;
-    owner = msg.sender;
+    owner = _owner;
   }
   modifier onlyOwner() {
     if (msg.sender != owner) revert ErrNotOwner();

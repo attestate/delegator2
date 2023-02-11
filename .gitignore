@@ -6,3 +6,7 @@ out/
 !/broadcast
 /broadcast/*
 /broadcast/*/31337/
+
+key.json
+deploy.sh
+verify.sh
