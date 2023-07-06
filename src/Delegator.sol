@@ -23,10 +23,6 @@ contract Delegator {
   // repeatedly with the Kiwi News Protocol interpreting the latest write as
   // the user's intention.
   //
-  struct Authorization {
-    address to;
-    bool authorize;
-  }
   error ErrLoop();
   event Delegate(address to, bool authorize);
   function etch(bytes32 data) external {
