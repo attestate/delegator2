@@ -1,40 +1,117 @@
-# Delegator
+Name:         Delegator2
+Description:  Key authority event log for Kiwi News Protocol
+Requires:     EIP-712, EIP-2098
 
-readme: see src/Delegator.sol
-addresses:
-  - eth:0x598139e4fa2cf7597226efce853f6e382c95a941#code
 
-## CREATE2
+Instructions
+------------
 
-Factory: 0x0000000000ffe8b47b3e2130213b802212439497
-Salt: 0x0000000000000000000000000000000000000000f00df00df00df00df00df00d
-Init code: 0x608060405234801561001057600080fd5b5060ff8061001f6000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c8063fcd1ba6414602d575b600080fd5b603c603836600460b1565b603e565b005b606081901c60018083161433829003606957604051632dbbf50f60e01b815260040160405180910390fd5b604080516001600160a01b038416815282151560208201527f476e135b58bb76d596395ad8ab8aced2704a709b7354a2fec97a64d905e3536a910160405180910390a1505050565b60006020828403121560c257600080fd5b503591905056fea26469706673582212206160446ef1f0dbc84cc7abc8062e63b176525d8433f146d9666797cd1dde4c1c64736f6c63430008110033
+Any caller may call `etch` such that:
 
-NOTE: 
+  1. `data[0]` and `data[1]` are respectively the first and the second
+      part of an EIP-2098 "Compact Signature."
+  2. `data[2]` is a `bytes32` segmented into:
 
-The factory allows bypassing the "containsCaller" check by setting the first 20
-bytes of the salt to zeros.
+    0x4E774b8530d6f3A21C449A6f0D9A1229aB2b8C47000000000000000000000001
+      ^                                      ^^                     ^^
+      |                                      ||                     ||
+      .--------------------------------------..---------------------.|
+      (a bytes20-long `address to`)             (empty)              |
+                                                                     |
+                                                (the `bool authorize`)
 
-```
-/**
- * @dev Modifier to ensure that the first 20 bytes of a submitted salt match
- * those of the calling account. This provides protection against the salt
- * being stolen by frontrunners or other attackers. The protection can also be
- * bypassed if desired by setting each of the first 20 bytes to zero.
- * @param salt bytes32 The salt value to check against the calling address.
- */
-modifier containsCaller(bytes32 salt) {
-  // prevent contract submissions from being stolen from tx.pool by requiring
-  // that the first 20 bytes of the submitted salt match msg.sender.
-  require(
-    (address(bytes20(salt)) == msg.sender) ||
-    (bytes20(salt) == bytes20(0)),
-    "Invalid salt - first 20 bytes of the salt must match calling address."
-  );
-  _;
-}
-```
+    2.1 `address to` is the entity the transaction's sender (`address
+        from`) is delegating authority or revoking it.
+    2.2 If `bool authorize` is `true` it means `address from` is
+        delegating their authority to `address to`.
+    2.3 If `bool authorize` is `false` it means `address from` is revoking
+        their authority from `address to`.
+  3. The signature in `data[0]` and `data[1]` must be signed according to
+     EIP-712.
+    3.1 The message is conceptually generated using the following struct:
 
-## License
+        struct Authorization {
+          address from;
+          bool authorize;
+        }
+
+    3.2 And an EIP-712 domain separator using the following types and
+        values:
+
+        struct EIP712Domain {
+          string name     = "kiwinews";
+          string version  = "1.0.0";
+          uint256 chainId = 1;
+          address target  = 0x...(this contract's address)
+          bytes32 salt    =
+           0xfe7a9d68e99b6942bb3a36178b251da8bd061c20ed1e795207ae97183b590e5b;
+        }
+
+    3.3 The message is then signed by `address to` and tucked into a
+        transaction signed by `address from` and sent to the network.
+
+
+Interpretation:
+---------------
+
+
+0. We consider a key delegation from `address from` to `address to` valid
+   if:
+  0.1 we can "ecrecover" `address to` (the first 20 bytes of `data[2]`)
+      from `data[0]` and `data[1]` (an EIP-2098 "Compact Signature") using
+      the above-mentioned procedure; AND
+  0.2 if the last bit (`bool authorize`) of `data[2]` is "1"; AND
+  0.3 if the `address from` of the `Authorization` message appears as the
+      "from" property on the event log's transaction receipt.
+1. We consider a key revocation by `address from` of `address to` valid if:
+  1.1 we can "ecrecover" `address to` (the first 20 bytes of `data[2]`)
+      from `data[0]` and `data[1]` (also an EIP-2098 "Compact Signature")
+      using the above-mentioned procedure; AND
+  1.2 if the last bit (`bool authorize`) of `data[2]` is "0"; AND
+  1.3 if the `address from` of the `Authorization` message appears as the
+      "from" property on the event log's transaction receipt.
+
+
+Rationale
+---------
+
+- In a prior iteration (Delegator.sol) we allowed anyone to "etch" a
+  delegation to `address to` without requiring an ecrecover-able signature
+  that yields `to`'s address. We've found, however, that this opens a
+  vector for anyone to impersonate or front-run delegations. Hence by
+  directing a signed delegation to `address from`, this makes stealing the
+  payload useless for front-runners and verifiably authentic.
+- In an even earlier version of the Kiwi News Protocol we had considered
+  storing delegations on our set reconciliation network. However, it would
+  have allowed a malicious node operator to back-date a delegation message
+  or its revocation - which could have interfered with the network's
+  reconciliation algorithm.
+
+
+Limitations
+-----------
+
+- If an indexer observes multiple valid delegations from to one `address
+  to` to multiple different `address from`, then they must consider the
+  latest delegation the user's intention.
+- Similarly, multiple occurrences between one distinct `address to` and an
+  `address from`, an indexer must consider the latest delegation the user's
+  intention.
+
+
+Considerations
+--------------
+
+- Indexers are recommended to ignore valid delegations where the `address
+  from`, `address to` and the transaction receipt's "from" property are the
+  same address.
+- The transaction running the eth-call and its payload are not replayable on
+  other chains as the chain ID is part of the EIP-712 domain separator. They
+  are neither replayable on the same chain as both the verifying contract's
+  address and its version are part of the separator too.
+
+
+License
+-------
 
 SPDX-License-Identifier: AGPL-3.0
