@@ -111,6 +111,56 @@ Considerations
   address and its version are part of the separator too.
 
 
+SDK.js
+------
+
+  (in the ./sdk folder)
+
+  Installation
+  ------------
+
+  Install via npm. Consider that ethers is a peer dependency.
+
+    npm install @attestate/delegator2 ethers@^5.7.0
+
+
+  Usage
+  -----
+
+  You can import the create and validate functions from the package like so:
+
+    import { create, validate } from '@attestate/delegator2';
+
+
+  validate(data, from)
+  --------------------
+
+  This function validates the data from the event `Authorize(bytes32)` and
+  checks if the from address matches the "from" property from the transaction
+  receipt of the event log.
+
+  Parameters
+
+    - `bytes32[3] data`: The `data` from the `Authorize(bytes32)` event.
+    - `address from`: The "from" property from the transaction receipt of the
+      event log.
+
+
+  create(signer, from, to, authorize)
+  -----------------------------------
+
+  This function creates a delegation or revocation message.
+
+  Parameters
+
+    - `Wallet signer`: An ethers.js signer instance. This is used to sign the
+      EIP-712 typed data.
+    - `address from`: The address of the transaction sender.
+    - `address to`: The address to which authority is being delegated.
+    - `bool authorize`: A boolean value indicating whether the operation is a
+      delegation (true) or a revocation (false).
+
+
 License
 -------
 
