@@ -149,6 +149,14 @@ SDK.js
     - `address from`: The "from" property from the transaction receipt of the
       event log.
 
+  Returns
+
+    - An object containing the following properties:
+      - `address from`: The address which delegates authority.
+      - `address to`: The address to which authority is being delegated.
+      - `bool authorize`: A boolean value indicating whether the operation is a
+        delegation (`true`) or a revocation (`false`).
+
 
   create(signer, from, to, authorize)
   -----------------------------------
@@ -163,6 +171,17 @@ SDK.js
     - `address to`: The address to which authority is being delegated.
     - `bool authorize`: A boolean value indicating whether the operation is a
       delegation (true) or a revocation (false).
+
+  Returns
+
+    - An array of three bytes32 strings, each prefixed with 0x. These strings
+      represent the following (more details? See description of protocol
+      above):
+      - The first part of the signed message.
+      - The second part of the signed message.
+      - The address to which authority is being delegated or revoked, followed
+        by a flag indicating the operation (1 for delegation, 0 for
+        revocation).
 
 
 License
