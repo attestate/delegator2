@@ -4,7 +4,7 @@
   "description": "An SDK for attestate's delegator2.sol",
   "main": "./src/index.mjs",
   "scripts": {
-    "test": "ava"
+    "test": "DEBUG=\"*@attestate*\" ava --verbose"
   },
   "keywords": [
     "delegation",
@@ -20,5 +20,8 @@
   },
   "devDependencies": {
     "ava": "5.3.1"
+  },
+  "dependencies": {
+    "debug": "4.3.4"
   }
 }

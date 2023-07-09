@@ -1,5 +1,7 @@
 import { utils } from "ethers";
 
+import log from "./logger.mjs";
+
 const EIP712_DOMAIN = {
   name: "kiwinews",
   version: "1.0.0",
@@ -9,8 +11,76 @@ const EIP712_DOMAIN = {
   salt: "0xfe7a9d68e99b6942bb3a36178b251da8bd061c20ed1e795207ae97183b590e5b",
 };
 
+export async function organize(payloads, domain = EIP712_DOMAIN) {
+  const delegations = {};
+  const revoked = new Set();
+  const froms = new Set();
+  const tos = new Set();
+
+  for (const { data, receipt } of payloads) {
+    let delegation;
+    try {
+      delegation = await validate(data, receipt.from, domain);
+    } catch (err) {
+      log(`Invalid delegation: ${JSON.stringify(err.message)}`);
+      continue;
+    }
+
+    const from = delegation.from.toLowerCase();
+    const to = delegation.to.toLowerCase();
+    const auth = delegation.authorize;
+
+    if (froms.has(to)) {
+      log(`"to" address is already a "from" address: ${to}`);
+      continue;
+    }
+
+    if (tos.has(from)) {
+      log(`"from" address is already a "to" address: ${from}`);
+      continue;
+    }
+
+    if (from === to) {
+      log(`"from" and "to" are equal: ${from}`);
+      continue;
+    }
+
+    if (!auth && !delegations[to]) {
+      log(
+        `Delegation is a revocation and there is no existing delegation: ${to}`
+      );
+      continue;
+    }
+
+    if (!auth) {
+      revoked.add(to);
+      delete delegations[to];
+      log(`Delegation is a revocation: ${to}`);
+      continue;
+    }
+
+    if (delegations[to]) {
+      log(`Existing delegation for the "to" address: ${to}`);
+      continue;
+    }
+
+    if (revoked.has(to)) {
+      log(`"to" address has been revoked: ${to}`);
+      continue;
+    }
+
+    delegations[to] = from;
+    froms.add(from);
+    tos.add(to);
+  }
+
+  return delegations;
+}
+
 export async function validate(data, from, domain = EIP712_DOMAIN) {
-  const to = data[2].slice(0, 42);
+  from = from.toLowerCase();
+  const to = data[2].slice(0, 42).toLowerCase();
+
   const authorize = parseInt(data[2].slice(-1), 16) === 1;
   const message = {
     from,
@@ -23,11 +93,14 @@ export async function validate(data, from, domain = EIP712_DOMAIN) {
     ],
   };
   const signature = data[0] + data[1].slice(2);
-  const recoveredTo = utils.verifyTypedData(domain, types, message, signature);
+  const recoveredTo = utils
+    .verifyTypedData(domain, types, message, signature)
+    .toLowerCase();
 
-  if (to.toLowerCase() !== recoveredTo.toLowerCase()) {
+  if (to !== recoveredTo) {
     throw new Error("Recovered address and claimed address aren't equal");
   }
+
   return {
     from,
     to,
@@ -42,6 +115,8 @@ export async function create(
   authorize,
   domain = EIP712_DOMAIN
 ) {
+  from = from.toLowerCase();
+  to = to.toLowerCase();
   const message = {
     from,
     authorize,
