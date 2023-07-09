@@ -54,7 +54,6 @@ Any caller may call `etch` such that:
 Interpretation:
 ---------------
 
-
 0. We consider a key delegation from `address from` to `address to` valid
    if:
   0.1 we can "ecrecover" `address to` (the first 20 bytes of `data[2]`)
@@ -75,12 +74,12 @@ Interpretation:
 Rationale
 ---------
 
-- In a prior iteration (Delegator.sol) we allowed anyone to "etch" a
-  delegation to `address to` without requiring an ecrecover-able signature
-  that yields `to`'s address. We've found, however, that this opens a
-  vector for anyone to impersonate or front-run delegations. Hence by
-  directing a signed delegation to `address from`, this makes stealing the
-  payload useless for front-runners and verifiably authentic.
+- In a prior iteration (Delegator.sol) we allowed anyone to "etch" a delegation
+  to `address to` without requiring an ecrecover-able signature that yields
+  `to`'s address. We've found, however, that this opens a vector for anyone to
+  impersonate or front-run delegations by "stealing" the transaction's data.
+  Hence by directing a signed delegation to `address from`, this makes stealing
+  the payload useless for front-runners and verifiably authentic.
 - In an even earlier version of the Kiwi News Protocol we had considered
   storing delegations on our set reconciliation network. However, it would
   have allowed a malicious node operator to back-date a delegation message
@@ -91,12 +90,11 @@ Rationale
 Limitations
 -----------
 
-- If an indexer observes multiple valid delegations from to one `address
-  to` to multiple different `address from`, then they must consider the
-  latest delegation the user's intention.
-- Similarly, multiple occurrences between one distinct `address to` and an
-  `address from`, an indexer must consider the latest delegation the user's
-  intention.
+- If an indexer observes multiple valid delegations from one `address to` to
+  multiple different `address from`, then they must consider the latest
+  delegation the user's intention.
+- Similarly, multiple occurrences of one distinct `address to` and an `address
+  from`, an indexer must consider the latest delegation the user's intention.
 
 
 Considerations
@@ -109,6 +107,12 @@ Considerations
   other chains as the chain ID is part of the EIP-712 domain separator. They
   are neither replayable on the same chain as both the verifying contract's
   address and its version are part of the separator too.
+- Using CREATE2, the system may be run on multiple chains in parallel. However,
+  a total ordering of all transactions from those systems must exist. Hence, if
+  say one such contract is run on ETH mainnet and another one on an L2, a total
+  order may be producable by virtue of the L2 using L1 storage. This seems to
+  hold as well for two L2s considering that their state access on L2 is
+  happening in atomic transactions over which we can create a total order.
 
 
 SDK.js
