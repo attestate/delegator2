@@ -10,7 +10,7 @@ const EIP712_DOMAIN = {
   salt: "0xfe7a9d68e99b6942bb3a36178b251da8bd061c20ed1e795207ae97183b590e5b",
 };
 
-export async function organize(payloads, domain = EIP712_DOMAIN) {
+export function organize(payloads, domain = EIP712_DOMAIN) {
   const delegations = {};
   const revoked = new Set();
   const froms = new Set();
@@ -19,7 +19,7 @@ export async function organize(payloads, domain = EIP712_DOMAIN) {
   for (const { data, receipt } of payloads) {
     let delegation;
     try {
-      delegation = await validate(data, receipt.from, domain);
+      delegation = validate(data, receipt.from, domain);
     } catch (err) {
       log(`Invalid delegation: ${JSON.stringify(err.message)}`);
       continue;
@@ -76,7 +76,7 @@ export async function organize(payloads, domain = EIP712_DOMAIN) {
   return delegations;
 }
 
-export async function validate(data, from, domain = EIP712_DOMAIN) {
+export function validate(data, from, domain = EIP712_DOMAIN) {
   from = from.toLowerCase();
   const to = data[2].slice(0, 42).toLowerCase();
 

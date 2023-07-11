@@ -23,7 +23,7 @@ test("call organize with a payload where to==from", async (t) => {
 
   let result;
   try {
-    result = await sdk.organize([eventLog]);
+    result = sdk.organize([eventLog]);
   } catch (err) {
     t.fail(err.message);
   }
@@ -58,7 +58,7 @@ test("call organize with multiple delegations from the same 'from' address to di
 
   let result;
   try {
-    result = await sdk.organize([log0, log1]);
+    result = sdk.organize([log0, log1]);
   } catch (err) {
     t.fail(err.message);
   }
@@ -95,7 +95,7 @@ test("call organize with a successful delegation followed by a revocation, follo
 
   let result;
   try {
-    result = await sdk.organize([log1, log2, log3]);
+    result = sdk.organize([log1, log2, log3]);
   } catch (err) {
     t.fail(err.message);
   }
@@ -124,7 +124,7 @@ test("call organize with two delegations for the same 'to' address", async (t) =
 
   let result;
   try {
-    result = await sdk.organize([log1, log2]);
+    result = sdk.organize([log1, log2]);
   } catch (err) {
     t.fail(err.message);
   }
@@ -152,7 +152,7 @@ test("call organize with a successful delegation followed by a revocation", asyn
 
   let result;
   try {
-    result = await sdk.organize([log1, log2]);
+    result = sdk.organize([log1, log2]);
   } catch (err) {
     t.fail(err.message);
   }
@@ -176,7 +176,7 @@ test("call organize with a revocation payload but no existing delegation", async
 
   let result;
   try {
-    result = await sdk.organize([eventLog]);
+    result = sdk.organize([eventLog]);
   } catch (err) {
     t.fail(err.message);
   }
@@ -214,7 +214,7 @@ test("call organize with a payload where 'from' address is already a 'to' addres
 
   let result;
   try {
-    result = await sdk.organize([eventLog1, eventLog2]);
+    result = sdk.organize([eventLog1, eventLog2]);
   } catch (err) {
     t.fail(err.message);
   }
@@ -252,7 +252,7 @@ test("call organize with a payload where 'to' address is already a 'from' addres
 
   let result;
   try {
-    result = await sdk.organize([eventLog1, eventLog2]);
+    result = sdk.organize([eventLog1, eventLog2]);
   } catch (err) {
     t.fail(err.message);
   }
@@ -272,7 +272,7 @@ test("revoke delegation", async (t) => {
   t.true(parseInt(data[2].slice(-1), 16) === 0);
 
   try {
-    const result = await sdk.validate(data, from);
+    const result = sdk.validate(data, from);
     t.is(result.from, from.toLowerCase());
     t.is(result.to, to.toLowerCase());
     t.false(result.authorize);
@@ -294,7 +294,7 @@ test("attempt delegation but claim wrong 'to' address", async (t) => {
   t.is(data.length, 3);
   t.true(parseInt(data[2].slice(-1), 16) === 1);
 
-  await t.throwsAsync(async () => await sdk.validate(data, from));
+  t.throws(() => sdk.validate(data, from));
 });
 
 test("attempt delegation but claim wrong 'authorize' flag", async (t) => {
@@ -309,9 +309,7 @@ test("attempt delegation but claim wrong 'authorize' flag", async (t) => {
   data2 = data2.slice(0, -1) + "0";
   t.false(parseInt(data2.slice(-1), 16) === 1);
 
-  await t.throwsAsync(
-    async () => await sdk.validate([data0, data1, data2], from)
-  );
+  t.throws(() => sdk.validate([data0, data1, data2], from));
 });
 
 test("attempt delegation but claim wrong 'from' flag", async (t) => {
@@ -325,9 +323,7 @@ test("attempt delegation but claim wrong 'from' flag", async (t) => {
   let data = await sdk.create(signerTo, from, to, authorize);
 
   const fakeFrom = "0x0000000000000000000000000000000000000000";
-  await t.throwsAsync(
-    async () => await sdk.validate([data0, data1, data2], fakeFrom)
-  );
+  t.throws(() => sdk.validate([data0, data1, data2], fakeFrom));
 });
 
 test("generate delegation message", async (t) => {
@@ -343,7 +339,7 @@ test("generate delegation message", async (t) => {
   t.true(parseInt(data[2].slice(-1), 16) === 1);
 
   try {
-    const result = await sdk.validate(data, from);
+    const result = sdk.validate(data, from);
     t.is(result.from, from.toLowerCase());
     t.is(result.to, to.toLowerCase());
     t.true(result.authorize);
