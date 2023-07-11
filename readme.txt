@@ -39,12 +39,11 @@ Any caller may call `etch` such that:
         values:
 
         struct EIP712Domain {
-          string name     = "kiwinews";
-          string version  = "1.0.0";
-          uint256 chainId = <chainId>;
-          address target  = 0x...(this contract's address)
-          bytes32 salt    =
-           0xfe7a9d68e99b6942bb3a36178b251da8bd061c20ed1e795207ae97183b590e5b;
+          string name               = "kiwinews";
+          string version            = "1.0.0";
+          uint256 chainId           = <chainId>;
+          address verifyingContract = 0x08b7ECFac2c5754ABafb789c84F8fa37c9f088B0
+          bytes32 salt              = 0xfe7a9d68e99b6942bb3a36178b251da8bd061c20ed1e795207ae97183b590e5b;
         }
 
     3.3 The message is then signed by `address to` and tucked into a
