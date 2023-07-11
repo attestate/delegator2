@@ -236,4 +236,5 @@ SDK.js
 License
 -------
 
-SPDX-License-Identifier: AGPL-3.0
+Contract licensed as SPDX-License-Identifier: AGPL-3.0
+SDK licensed as SPDX-License-Identifier: GPL-3.0-only

@@ -14,7 +14,7 @@
     "signature"
   ],
   "author": "Tim Daubenschütz <tim@daubenschuetz.de> (https://proofinprogress.com/)",
-  "license": "AGPL-3.0",
+  "license": "GPL-3.0-only",
   "peerDependencies": {
     "ethers": "^5.7.0"
   },
