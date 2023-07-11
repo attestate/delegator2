@@ -5,9 +5,8 @@ import log from "./logger.mjs";
 const EIP712_DOMAIN = {
   name: "kiwinews",
   version: "1.0.0",
-  chainId: 1,
-  // TODO: change
-  verifyingContract: "0x0000000000000000000000000000000000000000",
+  chainId: 10,
+  verifyingContract: "0x08b7ecfac2c5754abafb789c84f8fa37c9f088b0",
   salt: "0xfe7a9d68e99b6942bb3a36178b251da8bd061c20ed1e795207ae97183b590e5b",
 };
 

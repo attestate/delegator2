@@ -41,7 +41,7 @@ Any caller may call `etch` such that:
         struct EIP712Domain {
           string name     = "kiwinews";
           string version  = "1.0.0";
-          uint256 chainId = 1;
+          uint256 chainId = <chainId>;
           address target  = 0x...(this contract's address)
           bytes32 salt    =
            0xfe7a9d68e99b6942bb3a36178b251da8bd061c20ed1e795207ae97183b590e5b;
@@ -150,6 +150,19 @@ Considerations
   contract but with a different EIP-712 domain separator. Kiwi News Protocol
   would simply consider those payloads invalid, which can be OK if it doesn't
   waste too much compute spent on undirected validation.
+
+
+Deployment
+----------
+
+- CREATE2 is used to deploy delegator2 to a deterministic address independent
+  of chainId.
+- `DEPLOYER`: 0x0000000000ffe8b47b3e2130213b802212439497
+- `SALT`: 0x0000000000000000000000000000000000000000f00df00df00df00df00df00d
+- `INITCODE`: 0x608060405234801561001057600080fd5b5060e18061001f6000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c80630baa83f814602d575b600080fd5b603c60383660046076565b603e565b005b7f9fcbf2ac7d9825115ae81812d10efa7fce04fcc9ca46f1d416aba53cdea8483e81604051606b9190609c565b60405180910390a150565b600060608284031215608757600080fd5b82606083011115609657600080fd5b50919050565b6060818101908383379291505056fea2646970667358221220a023699f314fe81dbaaa4e917b161d13bc252584f8e3602dca37be52f9e8b5a364736f6c63430008110033
+- `ADDRESS`: 0x08b7ECFac2c5754ABafb789c84F8fa37c9f088B0
+- Deployed to:
+  - Optimism
 
 
 SDK.js
