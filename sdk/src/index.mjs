@@ -25,8 +25,8 @@ export function organize(payloads, domain = EIP712_DOMAIN) {
       continue;
     }
 
-    const from = delegation.from.toLowerCase();
-    const to = delegation.to.toLowerCase();
+    const from = utils.getAddress(delegation.from);
+    const to = utils.getAddress(delegation.to);
     const auth = delegation.authorize;
 
     if (froms.has(to)) {
@@ -77,8 +77,11 @@ export function organize(payloads, domain = EIP712_DOMAIN) {
 }
 
 export function validate(data, from, domain = EIP712_DOMAIN) {
-  from = from.toLowerCase();
-  const to = data[2].slice(0, 42).toLowerCase();
+  from = utils.getAddress(from);
+  // NOTE: We're lower casing the address here before casting it to a checksum
+  // address as `getAddress` throws on mixed case.
+  // https://docs.ethers.org/v5/api/utils/address/#utils-getAddress
+  const to = utils.getAddress(data[2].slice(0, 42).toLowerCase());
 
   const authorize = parseInt(data[2].slice(-1), 16) === 1;
   const message = {
@@ -92,9 +95,9 @@ export function validate(data, from, domain = EIP712_DOMAIN) {
     ],
   };
   const signature = data[0] + data[1].slice(2);
-  const recoveredTo = utils
-    .verifyTypedData(domain, types, message, signature)
-    .toLowerCase();
+  const recoveredTo = utils.getAddress(
+    utils.verifyTypedData(domain, types, message, signature)
+  );
 
   if (to !== recoveredTo) {
     throw new Error("Recovered address and claimed address aren't equal");
@@ -114,8 +117,8 @@ export async function create(
   authorize,
   domain = EIP712_DOMAIN
 ) {
-  from = from.toLowerCase();
-  to = to.toLowerCase();
+  from = utils.getAddress(from);
+  to = utils.getAddress(to);
   const message = {
     from,
     authorize,
