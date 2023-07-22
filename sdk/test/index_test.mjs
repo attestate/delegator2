@@ -1,6 +1,7 @@
 // @format
 import test from "ava";
-import { utils, Wallet } from "ethers";
+import { getAddress } from "@ethersproject/address";
+import { Wallet } from "@ethersproject/wallet";
 
 import * as sdk from "../src/index.mjs";
 
@@ -61,8 +62,8 @@ test("call organize with multiple delegations from the same 'from' address to di
     t.fail(err.message);
   }
   t.deepEqual(result, {
-    [utils.getAddress(to0)]: utils.getAddress(from),
-    [utils.getAddress(to1)]: utils.getAddress(from),
+    [getAddress(to0)]: getAddress(from),
+    [getAddress(to1)]: getAddress(from),
   });
 });
 
@@ -126,7 +127,7 @@ test("call organize with two delegations for the same 'to' address", async (t) =
   } catch (err) {
     t.fail(err.message);
   }
-  t.deepEqual(result, { [utils.getAddress(to)]: utils.getAddress(from1) });
+  t.deepEqual(result, { [getAddress(to)]: getAddress(from1) });
 });
 
 test("call organize with a successful delegation followed by a revocation", async (t) => {
@@ -216,7 +217,7 @@ test("call organize with a payload where 'from' address is already a 'to' addres
   } catch (err) {
     t.fail(err.message);
   }
-  t.deepEqual(result, { [utils.getAddress(to1)]: utils.getAddress(from1) });
+  t.deepEqual(result, { [getAddress(to1)]: getAddress(from1) });
 });
 
 test("call organize with a payload where 'to' address is already a 'from' address", async (t) => {
@@ -254,7 +255,7 @@ test("call organize with a payload where 'to' address is already a 'from' addres
   } catch (err) {
     t.fail(err.message);
   }
-  t.deepEqual(result, { [utils.getAddress(to1)]: utils.getAddress(from1) });
+  t.deepEqual(result, { [getAddress(to1)]: getAddress(from1) });
 });
 
 test("revoke delegation", async (t) => {
@@ -271,8 +272,8 @@ test("revoke delegation", async (t) => {
 
   try {
     const result = sdk.validate(data, from);
-    t.is(result.from, utils.getAddress(from));
-    t.is(result.to, utils.getAddress(to));
+    t.is(result.from, getAddress(from));
+    t.is(result.to, getAddress(to));
     t.false(result.authorize);
     t.truthy(result);
   } catch (err) {
@@ -339,8 +340,8 @@ test("generate delegation message", async (t) => {
 
   try {
     const result = sdk.validate(data, from);
-    t.is(result.from, utils.getAddress(from));
-    t.is(result.to, utils.getAddress(to));
+    t.is(result.from, getAddress(from));
+    t.is(result.to, getAddress(to));
     t.true(result.authorize);
     t.truthy(result);
   } catch (err) {

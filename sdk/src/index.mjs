@@ -1,4 +1,6 @@
-import { utils } from "ethers";
+import { getAddress } from "@ethersproject/address";
+import { verifyTypedData } from "@ethersproject/wallet";
+import { splitSignature } from "@ethersproject/bytes";
 
 import log from "./logger.mjs";
 
@@ -25,8 +27,8 @@ export function organize(payloads, domain = EIP712_DOMAIN) {
       continue;
     }
 
-    const from = utils.getAddress(delegation.from);
-    const to = utils.getAddress(delegation.to);
+    const from = getAddress(delegation.from);
+    const to = getAddress(delegation.to);
     const auth = delegation.authorize;
 
     if (froms.has(to)) {
@@ -77,11 +79,11 @@ export function organize(payloads, domain = EIP712_DOMAIN) {
 }
 
 export function validate(data, from, domain = EIP712_DOMAIN) {
-  from = utils.getAddress(from);
+  from = getAddress(from);
   // NOTE: We're lower casing the address here before casting it to a checksum
   // address as `getAddress` throws on mixed case.
   // https://docs.ethers.org/v5/api/utils/address/#utils-getAddress
-  const to = utils.getAddress(data[2].slice(0, 42).toLowerCase());
+  const to = getAddress(data[2].slice(0, 42).toLowerCase());
 
   const authorize = parseInt(data[2].slice(-1), 16) === 1;
   const message = {
@@ -95,8 +97,8 @@ export function validate(data, from, domain = EIP712_DOMAIN) {
     ],
   };
   const signature = data[0] + data[1].slice(2);
-  const recoveredTo = utils.getAddress(
-    utils.verifyTypedData(domain, types, message, signature)
+  const recoveredTo = getAddress(
+    verifyTypedData(domain, types, message, signature)
   );
 
   if (to !== recoveredTo) {
@@ -117,8 +119,8 @@ export async function create(
   authorize,
   domain = EIP712_DOMAIN
 ) {
-  from = utils.getAddress(from);
-  to = utils.getAddress(to);
+  from = getAddress(from);
+  to = getAddress(to);
   const message = {
     from,
     authorize,
@@ -130,7 +132,7 @@ export async function create(
     ],
   };
   const signature = await signer._signTypedData(domain, types, message);
-  const { compact } = utils.splitSignature(signature);
+  const { compact } = splitSignature(signature);
   const data0 = "0x" + compact.slice(2, 66);
   const data1 = "0x" + compact.slice(66);
   const flag = authorize ? "1" : "0";
