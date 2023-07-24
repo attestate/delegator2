@@ -5,6 +5,62 @@ import { Wallet } from "@ethersproject/wallet";
 
 import * as sdk from "../src/index.mjs";
 
+test("should return valid delegation's from", (t) => {
+  const address = "0x0000000000000000000000000000000000000001";
+  const to = "0x0000000000000000000000000000000000001337";
+  const allowlist = [address];
+  const delegations = {
+    [to]: address,
+  };
+
+  t.is(address, sdk.eligible(allowlist, delegations, to));
+});
+
+test("is not in allowlist and not in delegations", (t) => {
+  const allowlist = [];
+  const address = "0x0000000000000000000000000000000000000001";
+  const delegations = {
+    "0x0000000000000000000000000000000000001337":
+      "0x0000000000000000000000000000000000000666",
+  };
+
+  t.false(sdk.eligible(allowlist, delegations, address));
+});
+
+test("is delegated to address but from isn't in allowlist", (t) => {
+  const allowlist = [];
+  const address = "0x0000000000000000000000000000000000001337";
+  const delegations = {
+    [address]: "0x0000000000000000000000000000000000000666",
+  };
+
+  t.false(sdk.eligible(allowlist, delegations, address));
+});
+
+test("eligible should return the address (case-independent) if it is in the allowlist", (t) => {
+  const allowlist = ["0x0f6A79A579658E401E0B81c6dde1F2cd51d97176"];
+  const delegations = {};
+
+  const result = sdk.eligible(
+    allowlist,
+    delegations,
+    allowlist[0].toLowerCase()
+  );
+
+  t.is(result, allowlist[0]);
+});
+
+test("eligible should return the address (case-independent) if allowlist is lower-case formatted too", (t) => {
+  const allowlist = [
+    "0x0f6A79A579658E401E0B81c6dde1F2cd51d97176".toLowerCase(),
+  ];
+  const delegations = {};
+
+  const result = sdk.eligible(allowlist, delegations, allowlist[0]);
+
+  t.is(result, getAddress(allowlist[0]));
+});
+
 test("call organize with a payload where to==from", async (t) => {
   const to = "0x0f6A79A579658E401E0B81c6dde1F2cd51d97176";
   const privateKey =

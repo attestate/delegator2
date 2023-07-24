@@ -258,6 +258,30 @@ SDK.js
       skipping.
 
 
+  eligible(allowlist, delegations, address)
+  -----------------------------------------
+
+  This function checks if an Ethereum address is eligible based on an allowlist
+  and delegations.
+
+  Parameters
+
+    - `string[] allowlist`: A list of Ethereum addresses that have minted the
+      Kiwi News NFT. Addresses do not need to be checksummed.
+    - `Object delegations`: An object mapping 'to' addresses to 'from'
+      addresses. The 'from' address must always be part of the allowlist. Both
+      'to' and 'from' are Ethereum addresses. This object is expected to be the
+      result of the 'organize' function and all included addresses must be
+      checksummed.
+    - `string address`: The Ethereum address to check for eligibility.
+
+
+  Returns
+
+    - (string|false): Returns the eligible address if found in the allowlist or
+      delegations, otherwise returns false.
+
+
 License
 -------
 

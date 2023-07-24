@@ -12,6 +12,21 @@ const EIP712_DOMAIN = {
   salt: "0xfe7a9d68e99b6942bb3a36178b251da8bd061c20ed1e795207ae97183b590e5b",
 };
 
+export function eligible(allowlist, delegations, address) {
+  allowlist = allowlist.map(getAddress);
+  address = getAddress(address);
+  const allowed0 = allowlist.includes(address);
+  if (allowed0) return address;
+
+  const from = delegations[address];
+  if (!from) return false;
+
+  const allowed1 = allowlist.includes(from);
+  if (allowed1) return from;
+
+  return false;
+}
+
 export function organize(payloads, domain = EIP712_DOMAIN) {
   const delegations = {};
   const revoked = new Set();
