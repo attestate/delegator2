@@ -177,6 +177,13 @@ SDK.js
     npm install @attestate/delegator2 ethers@^5.7.0
 
 
+  Note:
+
+    If you're concerned about bundle size, consider installing the respective
+    `@ethersproject` sub packages as defined in `./sdk/package.json`'s
+    'dependencies'.
+
+
   Usage
   -----
 
