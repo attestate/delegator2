@@ -233,6 +233,31 @@ SDK.js
         revocation).
 
 
+  organize(payloads, domain = EIP712_DOMAIN)
+  ------------------------------------------
+
+  This function organizes a list of payloads into a delegations object.
+
+  Parameters
+
+    - `Object[] payloads`: An array of objects, each containing data from the
+      `Authorize(bytes32)` event and a receipt with a "from" property.
+    - `string domain`: The EIP-712 domain. Defaults to the internal
+      EIP712_DOMAIN.
+
+  Returns
+
+    - `Object`: An object mapping 'to' addresses to 'from' addresses. The
+      'from' address must always be part of the allowlist. Both 'to' and 'from'
+      are Ethereum addresses. All included addresses are checksummed.
+
+  Notes
+
+    - Applies the "Organize" rules of the protocol as outlined above.
+    - The function logs messages for each skipped payload and the reason for
+      skipping.
+
+
 License
 -------
 
