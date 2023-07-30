@@ -13,15 +13,14 @@ const EIP712_DOMAIN = {
 };
 
 export function eligible(allowlist, delegations, address) {
-  allowlist = allowlist.map(getAddress);
   address = getAddress(address);
-  const allowed0 = allowlist.includes(address);
+  const allowed0 = allowlist.has(address);
   if (allowed0) return address;
 
   const from = delegations[address];
   if (!from) return false;
 
-  const allowed1 = allowlist.includes(from);
+  const allowed1 = allowlist.has(from);
   if (allowed1) return from;
 
   return false;

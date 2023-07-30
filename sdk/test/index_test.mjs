@@ -8,7 +8,7 @@ import * as sdk from "../src/index.mjs";
 test("should return valid delegation's from", (t) => {
   const address = "0x0000000000000000000000000000000000000001";
   const to = "0x0000000000000000000000000000000000001337";
-  const allowlist = [address];
+  const allowlist = new Set([address]);
   const delegations = {
     [to]: address,
   };
@@ -17,7 +17,7 @@ test("should return valid delegation's from", (t) => {
 });
 
 test("is not in allowlist and not in delegations", (t) => {
-  const allowlist = [];
+  const allowlist = new Set();
   const address = "0x0000000000000000000000000000000000000001";
   const delegations = {
     "0x0000000000000000000000000000000000001337":
@@ -28,7 +28,7 @@ test("is not in allowlist and not in delegations", (t) => {
 });
 
 test("is delegated to address but from isn't in allowlist", (t) => {
-  const allowlist = [];
+  const allowlist = new Set();
   const address = "0x0000000000000000000000000000000000001337";
   const delegations = {
     [address]: "0x0000000000000000000000000000000000000666",
@@ -38,27 +38,23 @@ test("is delegated to address but from isn't in allowlist", (t) => {
 });
 
 test("eligible should return the address (case-independent) if it is in the allowlist", (t) => {
-  const allowlist = ["0x0f6A79A579658E401E0B81c6dde1F2cd51d97176"];
+  const list = ["0x0f6A79A579658E401E0B81c6dde1F2cd51d97176"];
+  const allowlist = new Set(list);
   const delegations = {};
 
-  const result = sdk.eligible(
-    allowlist,
-    delegations,
-    allowlist[0].toLowerCase()
-  );
+  const result = sdk.eligible(allowlist, delegations, list[0].toLowerCase());
 
-  t.is(result, allowlist[0]);
+  t.is(result, list[0]);
 });
 
-test("eligible should return the address (case-independent) if allowlist is lower-case formatted too", (t) => {
-  const allowlist = [
-    "0x0f6A79A579658E401E0B81c6dde1F2cd51d97176".toLowerCase(),
-  ];
+test("eligible returns false if address isn't check-summed properly", (t) => {
+  const list = ["0x0f6A79A579658E401E0B81c6dde1F2cd51d97176".toLowerCase()];
+  const allowlist = new Set(list);
   const delegations = {};
 
-  const result = sdk.eligible(allowlist, delegations, allowlist[0]);
+  const result = sdk.eligible(allowlist, delegations, list[0]);
 
-  t.is(result, getAddress(allowlist[0]));
+  t.false(result);
 });
 
 test("call organize with a payload where to==from", async (t) => {

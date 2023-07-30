@@ -187,7 +187,8 @@ SDK.js
   Usage
   -----
 
-  You can import the create and validate functions from the package like so:
+  You can import the create, validate and other functions from the package like
+  so:
 
     import { create, validate } from '@attestate/delegator2';
 
@@ -273,14 +274,15 @@ SDK.js
 
   Parameters
 
-    - `string[] allowlist`: A list of Ethereum addresses that have minted the
-      Kiwi News NFT. Addresses do not need to be checksummed.
+    - `Set allowlist`: A list of Ethereum addresses that have minted the
+      Kiwi News NFT. Addresses must be check-summed.
     - `Object delegations`: An object mapping 'to' addresses to 'from'
       addresses. The 'from' address must always be part of the allowlist. Both
       'to' and 'from' are Ethereum addresses. This object is expected to be the
       result of the 'organize' function and all included addresses must be
       checksummed.
-    - `string address`: The Ethereum address to check for eligibility.
+    - `string address`: The Ethereum address to check for eligibility. Must be
+      check-summed.
 
 
   Returns
