@@ -1,5 +1,10 @@
 # changelog
 
+## 0.2.0
+
+- Change the input type of "allowlist" from `string[]` to `Set` to improve
+  validation performance.
+
 ## 0.1.2
 
 - Added docs for `function organize`
