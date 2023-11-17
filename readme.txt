@@ -110,12 +110,47 @@ of the delegation process.
 Rationale
 ---------
 
-- In a prior iteration (Delegator.sol) we allowed anyone to "etch" a delegation
-  to `address to` without requiring an ecrecover-able signature that yields
-  `to`'s address. We've found, however, that this opens a vector for anyone to
-  impersonate or front-run delegations by "stealing" the transaction's data.
-  Hence by directing a signed delegation to `address from`, this makes stealing
-  the payload useless for front-runners and verifiably authentic.
+Following is an explaination on why we authorize both:
+
+1. The `address from` to forward privileges to `address to` by signing a
+transaction containing the `address to` in calldata; and
+
+2. the `address to` to accept `address from`'s privileges by signing an EIP-712
+message including `address from`.
+
+For (1), we require `address from` to sign `address to` as to authorize
+`address to` with the Kiwi News node. It confirms that `address from` allows
+adding `address to`.
+
+Similarly, for (2), we require `address to` to sign an EIP-712 payload
+including `address from` as to authorize for all future messages in the Kiwi
+News Protocol that if we ecrecover `address to` from a message's signature,
+then we are certain about which `address from` it must be credited to. 
+
+This primarily has to do with how the Kiwi News Protocol constructs messages
+where we only sign the payload of `href`, `title` and `timestamp` with `address
+to` but not to which "identity" to credit the contribution to. As including the
+`address to` as a byte payload in a tranaction's call data (unauthorized by
+`address to` through a signature), would allow an impersonator to frontrun the
+`etch` transaction and furthermore impersonate the original user's transaction.
+The frontrunner could manage to register a user's `address to` with then all
+future signed messages of `address to`-signed messages being credited to the
+frontrunner and not the original user (assuming the user would notice at
+first).
+
+Farcaster actually prevents this case by requiring each protocol message to
+include essentially the "fid" or or "fid owner address." That is because in
+this case they force `address to` to make a claim on which `address from` they
+represent which can then be cross-validated with the claim from `address
+from`'s onchain claim.
+
+It is, hence, necessary to sign in both directions, however, it would be
+possible to just sign from `address from` to `address to` is the protocol
+messages then included a signed claim of `address to` to which `address from`
+they represent.
+
+Finally, there are two further points of rationale:
+
 - In an even earlier version of the Kiwi News Protocol we had considered
   storing delegations on our set reconciliation network. However, it would
   have allowed a malicious node operator to back-date a delegation message
