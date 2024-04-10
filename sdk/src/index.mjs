@@ -12,6 +12,20 @@ const EIP712_DOMAIN = {
   salt: "0xfe7a9d68e99b6942bb3a36178b251da8bd061c20ed1e795207ae97183b590e5b",
 };
 
+export function eligible(allowlist, delegations, address) {
+  address = getAddress(address);
+  const allowed0 = allowlist.has(address);
+  if (allowed0) return address;
+
+  const from = delegations[address];
+  if (!from) return false;
+
+  const allowed1 = allowlist.has(from);
+  if (allowed1) return from;
+
+  return false;
+}
+
 // NOTE: The accounts object must be structured as follows:
 //
 // {
@@ -29,7 +43,7 @@ const EIP712_DOMAIN = {
 // Additionally, this functio can also validate the eligibly of an address for
 // a given historical timestamp. In this case, `validationTime` is set to a
 // date in the past.
-export function eligible(
+export function eligibleAt(
   accounts,
   delegations,
   address,

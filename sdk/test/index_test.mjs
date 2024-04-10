@@ -5,6 +5,58 @@ import { Wallet } from "@ethersproject/wallet";
 
 import * as sdk from "../src/index.mjs";
 
+test("should return valid delegation's from", (t) => {
+  const address = "0x0000000000000000000000000000000000000001";
+  const to = "0x0000000000000000000000000000000000001337";
+  const allowlist = new Set([address]);
+  const delegations = {
+    [to]: address,
+  };
+
+  t.is(address, sdk.eligible(allowlist, delegations, to));
+});
+
+test("is not in allowlist and not in delegations", (t) => {
+  const allowlist = new Set();
+  const address = "0x0000000000000000000000000000000000000001";
+  const delegations = {
+    "0x0000000000000000000000000000000000001337":
+      "0x0000000000000000000000000000000000000666",
+  };
+
+  t.false(sdk.eligible(allowlist, delegations, address));
+});
+
+test("is delegated to address but from isn't in allowlist", (t) => {
+  const allowlist = new Set();
+  const address = "0x0000000000000000000000000000000000001337";
+  const delegations = {
+    [address]: "0x0000000000000000000000000000000000000666",
+  };
+
+  t.false(sdk.eligible(allowlist, delegations, address));
+});
+
+test("eligible should return the address (case-independent) if it is in the allowlist", (t) => {
+  const list = ["0x0f6A79A579658E401E0B81c6dde1F2cd51d97176"];
+  const allowlist = new Set(list);
+  const delegations = {};
+
+  const result = sdk.eligible(allowlist, delegations, list[0].toLowerCase());
+
+  t.is(result, list[0]);
+});
+
+test("eligible returns false if address isn't check-summed properly", (t) => {
+  const list = ["0x0f6A79A579658E401E0B81c6dde1F2cd51d97176".toLowerCase()];
+  const allowlist = new Set(list);
+  const delegations = {};
+
+  const result = sdk.eligible(allowlist, delegations, list[0]);
+
+  t.false(result);
+});
+
 test("should return false for accounts if validation time is after account termination", (t) => {
   const address = "0x0000000000000000000000000000000000000001";
   const accounts = {
@@ -17,7 +69,7 @@ test("should return false for accounts if validation time is after account termi
   const delegations = {};
 
   const validationTime = 124;
-  t.false(sdk.eligible(accounts, delegations, address, validationTime));
+  t.false(sdk.eligibleAt(accounts, delegations, address, validationTime));
 });
 
 test("should return false for accounts if validation time is before account creation", (t) => {
@@ -31,7 +83,7 @@ test("should return false for accounts if validation time is before account crea
   const delegations = {};
 
   const validationTime = 122;
-  t.false(sdk.eligible(accounts, delegations, address, validationTime));
+  t.false(sdk.eligibleAt(accounts, delegations, address, validationTime));
 });
 
 test("should return false for delegation if validation time is after account termination", (t) => {
@@ -49,7 +101,7 @@ test("should return false for delegation if validation time is after account ter
   };
 
   const validationTime = 124;
-  t.false(sdk.eligible(accounts, delegations, to, validationTime));
+  t.false(sdk.eligibleAt(accounts, delegations, to, validationTime));
 });
 
 test("should return false for delegation if validation time is before account creation", (t) => {
@@ -66,10 +118,10 @@ test("should return false for delegation if validation time is before account cr
   };
 
   const validationTime = 122;
-  t.false(sdk.eligible(accounts, delegations, to, validationTime));
+  t.false(sdk.eligibleAt(accounts, delegations, to, validationTime));
 });
 
-test("should return valid delegation's from", (t) => {
+test("should return valid delegation's from for eligibleAt", (t) => {
   const address = "0x0000000000000000000000000000000000000001";
   const to = "0x0000000000000000000000000000000000001337";
   const accounts = {
@@ -82,7 +134,7 @@ test("should return valid delegation's from", (t) => {
     [to]: address,
   };
 
-  t.is(address, sdk.eligible(accounts, delegations, to));
+  t.is(address, sdk.eligibleAt(accounts, delegations, to));
 });
 
 test("is not in accounts and not in delegations", (t) => {
@@ -93,7 +145,7 @@ test("is not in accounts and not in delegations", (t) => {
       "0x0000000000000000000000000000000000000666",
   };
 
-  t.false(sdk.eligible(accounts, delegations, address));
+  t.false(sdk.eligibleAt(accounts, delegations, address));
 });
 
 test("is delegated to address but from isn't in accounts", (t) => {
@@ -103,10 +155,10 @@ test("is delegated to address but from isn't in accounts", (t) => {
     [address]: "0x0000000000000000000000000000000000000666",
   };
 
-  t.false(sdk.eligible(accounts, delegations, address));
+  t.false(sdk.eligibleAt(accounts, delegations, address));
 });
 
-test("eligible should return the address (case-independent) if it is in the accounts", (t) => {
+test("eligibleAt should return the address (case-independent) if it is in the accounts", (t) => {
   const address = "0x0f6A79A579658E401E0B81c6dde1F2cd51d97176";
   const accounts = {
     [address]: {
@@ -116,12 +168,12 @@ test("eligible should return the address (case-independent) if it is in the acco
   };
   const delegations = {};
 
-  const result = sdk.eligible(accounts, delegations, address.toLowerCase());
+  const result = sdk.eligibleAt(accounts, delegations, address.toLowerCase());
 
   t.is(result, address);
 });
 
-test("eligible returns false if address isn't check-summed properly", (t) => {
+test("eligibleAt returns false if address isn't check-summed properly", (t) => {
   const address = "0x0f6A79A579658E401E0B81c6dde1F2cd51d97176".toLowerCase();
   const accounts = {
     [address]: {
@@ -131,7 +183,7 @@ test("eligible returns false if address isn't check-summed properly", (t) => {
   };
   const delegations = {};
 
-  const result = sdk.eligible(accounts, delegations, address);
+  const result = sdk.eligibleAt(accounts, delegations, address);
 
   t.false(result);
 });

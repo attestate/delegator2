@@ -1,5 +1,11 @@
 # changelog
 
+## 0.4.0
+
+- Reintroduce original `function eligible` from 0.2.0 and prior releases.
+- Rename the `function eligible` functionality from version 0.3.0 to `function
+  eligibleAt`.
+
 ## 0.3.0
 
 - Switch from allowlist concept (a JavaScript Set of allowed addresses) to an
