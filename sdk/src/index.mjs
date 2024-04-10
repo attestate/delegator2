@@ -12,16 +12,52 @@ const EIP712_DOMAIN = {
   salt: "0xfe7a9d68e99b6942bb3a36178b251da8bd061c20ed1e795207ae97183b590e5b",
 };
 
-export function eligible(allowlist, delegations, address) {
+// NOTE: The accounts object must be structured as follows:
+//
+// {
+//   [address]: {
+//     start: <decimal-unix-timestamp>,
+//     end: <decimal-unix-timestamp>,
+//     balance: <decimal-number-of-kiwi-passes-held>
+//   },
+//   ...
+// }
+//
+// `start` is the timestamp of receiving the first Kiwi Pass NFT and end is the
+// unix timestamp when no Kiwi Pass NFT are held anymore.
+//
+// Additionally, this functio can also validate the eligibly of an address for
+// a given historical timestamp. In this case, `validationTime` is set to a
+// date in the past.
+export function eligible(
+  accounts,
+  delegations,
+  address,
+  validationTime = new Date()
+) {
   address = getAddress(address);
-  const allowed0 = allowlist.has(address);
-  if (allowed0) return address;
+  const account0 = accounts[address];
+  if (
+    account0 &&
+    account0.balance >= 0 &&
+    (account0.end === undefined || account0.end > validationTime) &&
+    account0.start < validationTime
+  ) {
+    return address;
+  }
 
   const from = delegations[address];
   if (!from) return false;
 
-  const allowed1 = allowlist.has(from);
-  if (allowed1) return from;
+  const account1 = accounts[from];
+  if (
+    account1 &&
+    account1.balance >= 1 &&
+    (account1.end === undefined || account1.end > validationTime) &&
+    account1.start < validationTime
+  ) {
+    return from;
+  }
 
   return false;
 }

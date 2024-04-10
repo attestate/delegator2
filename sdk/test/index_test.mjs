@@ -5,54 +5,133 @@ import { Wallet } from "@ethersproject/wallet";
 
 import * as sdk from "../src/index.mjs";
 
-test("should return valid delegation's from", (t) => {
+test("should return false for accounts if validation time is after account termination", (t) => {
+  const address = "0x0000000000000000000000000000000000000001";
+  const accounts = {
+    [address]: {
+      balance: 1,
+      start: 123,
+      end: 124,
+    },
+  };
+  const delegations = {};
+
+  const validationTime = 124;
+  t.false(sdk.eligible(accounts, delegations, address, validationTime));
+});
+
+test("should return false for accounts if validation time is before account creation", (t) => {
+  const address = "0x0000000000000000000000000000000000000001";
+  const accounts = {
+    [address]: {
+      balance: 1,
+      start: 123,
+    },
+  };
+  const delegations = {};
+
+  const validationTime = 122;
+  t.false(sdk.eligible(accounts, delegations, address, validationTime));
+});
+
+test("should return false for delegation if validation time is after account termination", (t) => {
   const address = "0x0000000000000000000000000000000000000001";
   const to = "0x0000000000000000000000000000000000001337";
-  const allowlist = new Set([address]);
+  const accounts = {
+    [address]: {
+      balance: 1,
+      start: 123,
+      end: 124,
+    },
+  };
   const delegations = {
     [to]: address,
   };
 
-  t.is(address, sdk.eligible(allowlist, delegations, to));
+  const validationTime = 124;
+  t.false(sdk.eligible(accounts, delegations, to, validationTime));
 });
 
-test("is not in allowlist and not in delegations", (t) => {
-  const allowlist = new Set();
+test("should return false for delegation if validation time is before account creation", (t) => {
+  const address = "0x0000000000000000000000000000000000000001";
+  const to = "0x0000000000000000000000000000000000001337";
+  const accounts = {
+    [address]: {
+      balance: 1,
+      start: 123,
+    },
+  };
+  const delegations = {
+    [to]: address,
+  };
+
+  const validationTime = 122;
+  t.false(sdk.eligible(accounts, delegations, to, validationTime));
+});
+
+test("should return valid delegation's from", (t) => {
+  const address = "0x0000000000000000000000000000000000000001";
+  const to = "0x0000000000000000000000000000000000001337";
+  const accounts = {
+    [address]: {
+      balance: 1,
+      start: 123,
+    },
+  };
+  const delegations = {
+    [to]: address,
+  };
+
+  t.is(address, sdk.eligible(accounts, delegations, to));
+});
+
+test("is not in accounts and not in delegations", (t) => {
+  const accounts = {};
   const address = "0x0000000000000000000000000000000000000001";
   const delegations = {
     "0x0000000000000000000000000000000000001337":
       "0x0000000000000000000000000000000000000666",
   };
 
-  t.false(sdk.eligible(allowlist, delegations, address));
+  t.false(sdk.eligible(accounts, delegations, address));
 });
 
-test("is delegated to address but from isn't in allowlist", (t) => {
-  const allowlist = new Set();
+test("is delegated to address but from isn't in accounts", (t) => {
+  const accounts = {};
   const address = "0x0000000000000000000000000000000000001337";
   const delegations = {
     [address]: "0x0000000000000000000000000000000000000666",
   };
 
-  t.false(sdk.eligible(allowlist, delegations, address));
+  t.false(sdk.eligible(accounts, delegations, address));
 });
 
-test("eligible should return the address (case-independent) if it is in the allowlist", (t) => {
-  const list = ["0x0f6A79A579658E401E0B81c6dde1F2cd51d97176"];
-  const allowlist = new Set(list);
+test("eligible should return the address (case-independent) if it is in the accounts", (t) => {
+  const address = "0x0f6A79A579658E401E0B81c6dde1F2cd51d97176";
+  const accounts = {
+    [address]: {
+      balance: 1,
+      start: 123,
+    },
+  };
   const delegations = {};
 
-  const result = sdk.eligible(allowlist, delegations, list[0].toLowerCase());
+  const result = sdk.eligible(accounts, delegations, address.toLowerCase());
 
-  t.is(result, list[0]);
+  t.is(result, address);
 });
 
 test("eligible returns false if address isn't check-summed properly", (t) => {
-  const list = ["0x0f6A79A579658E401E0B81c6dde1F2cd51d97176".toLowerCase()];
-  const allowlist = new Set(list);
+  const address = "0x0f6A79A579658E401E0B81c6dde1F2cd51d97176".toLowerCase();
+  const accounts = {
+    [address]: {
+      balance: 1,
+      start: 123,
+    },
+  };
   const delegations = {};
 
-  const result = sdk.eligible(allowlist, delegations, list[0]);
+  const result = sdk.eligible(accounts, delegations, address);
 
   t.false(result);
 });
