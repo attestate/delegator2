@@ -301,16 +301,21 @@ SDK.js
       skipping.
 
 
-  eligible(allowlist, delegations, address)
+  eligible(accounts, delegations, address)
   -----------------------------------------
 
-  This function checks if an Ethereum address is eligible based on an allowlist
+  This function checks if an Ethereum address is eligible based on the accounts
   and delegations.
 
   Parameters
 
-    - `Set allowlist`: A list of Ethereum addresses that have minted the
-      Kiwi News NFT. Addresses must be check-summed.
+    - `Object accounts`: An object consisting of holder information. Every key
+      is an Ethereum address that leads to an object with the properties.
+      - `start`: A decimal unix timestamp denoting the time of first receiving
+        a token.
+      - `end`: A decimal unix timestamp denoting the time when a user sent out
+        all of their tokens.
+      - `balance`: The number of tokens an address holds at the moment.
     - `Object delegations`: An object mapping 'to' addresses to 'from'
       addresses. The 'from' address must always be part of the allowlist. Both
       'to' and 'from' are Ethereum addresses. This object is expected to be the
