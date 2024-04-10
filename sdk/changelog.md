@@ -1,5 +1,15 @@
 # changelog
 
+## 0.3.0
+
+- Switch from allowlist concept (a JavaScript Set of allowed addresses) to an
+  accounts object. The accounts object defines when a token was minted, the
+  holder's token balance and a timestamp of when the holder's balance reached
+  zero tokens. This is a breaking change for the `function eligible`.
+- Introduce a parameter `validationTime` that simulates the point in time an
+  account claim is validated against. For example, this allows a developer to
+  check whether a user is eligible to post a message at a certain time.
+
 ## 0.2.0
 
 - Change the input type of "allowlist" from `string[]` to `Set` to improve
