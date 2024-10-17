@@ -38,9 +38,9 @@ export function eligible(allowlist, delegations, address) {
 // }
 //
 // `start` is the timestamp of receiving the first Kiwi Pass NFT and end is the
-// unix timestamp when no Kiwi Pass NFT are held anymore.
+// unix timestamp when no Kiwi Pass NFTs are held anymore.
 //
-// Additionally, this functio can also validate the eligibly of an address for
+// Additionally, this function can also validate the eligibly of an address for
 // a given historical timestamp. In this case, `validationTime` is set to a
 // date in the past.
 export function eligibleAt(
