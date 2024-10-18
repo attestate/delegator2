@@ -137,6 +137,28 @@ test("should return false for accounts if tokenId is not owned by the account", 
   );
 });
 
+test("extractLegacyObject handles ongoing token possession correctly", (t) => {
+  const accounts = {
+    "0x0000000000000000000000000000000000000001": {
+      balance: 1,
+      tokens: {
+        28: [{ start: 1694686439 }],
+        "mainnet-tokenId-1682092739": [{ start: 1682092739, end: 1694676249 }],
+      },
+    },
+  };
+  const address = "0x0000000000000000000000000000000000000001";
+
+  const expected = {
+    balance: 1,
+    start: 1682092739,
+  };
+
+  const result = sdk.extractLegacyObject(accounts, address);
+
+  t.deepEqual(result, expected);
+});
+
 test("throws if address not found in accounts", (t) => {
   const accounts = {};
   const address = "0x0000000000000000000000000000000000000001";
@@ -161,7 +183,7 @@ test("returns undefined for highest end if only start is present", (t) => {
 
   const result = sdk.extractLegacyObject(accounts, address);
 
-  t.deepEqual(result, { balance: 1, start: 1, end: undefined });
+  t.deepEqual(result, { balance: 1, start: 1 });
   t.is(result.end, undefined, "end should explicitly be undefined");
 });
 

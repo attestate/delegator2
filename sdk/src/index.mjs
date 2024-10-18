@@ -33,22 +33,28 @@ export function extractLegacyObject(accounts, address) {
 
   let lowestStart, highestEnd;
 
+  let hasUnboundedPossession = false;
   for (const tokenId in accounts[address].tokens) {
     const periods = accounts[address].tokens[tokenId];
-    periods.forEach((period) => {
+    for (const period of periods) {
       if (
         (!lowestStart && period.start) ||
         (period.start && lowestStart && period.start < lowestStart)
       ) {
         lowestStart = period.start;
       }
+
       if (
         (!highestEnd && period.end) ||
         (highestEnd && period.end && highestEnd < period.end)
       ) {
         highestEnd = period.end;
       }
-    });
+
+      if (period.start && !period.end) {
+        hasUnboundedPossession = true;
+      }
+    }
   }
   if (!lowestStart) {
     throw new Error(`No start value for address ${address} found`);
@@ -56,6 +62,9 @@ export function extractLegacyObject(accounts, address) {
 
   const { balance } = accounts[address];
 
+  if (hasUnboundedPossession) {
+    return { balance, start: lowestStart };
+  }
   return { balance, start: lowestStart, end: highestEnd };
 }
 
