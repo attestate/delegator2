@@ -1,5 +1,14 @@
 # changelog
 
+## 0.5.0
+
+- Implement precise `eligibleAt` function. A detailed explanation can be found
+  [here](https://github.com/attestate/crawler-call-block-logs/blob/main/changelog.md#050).
+  - The `address` and `validationTime` of `eligibleAt` have been moved into an
+    object called `params`. `params` also includes a property `tokenId`.
+  - The legacy `eligibleAt` functionality is still exposed by omitting
+    `tokenId` from `params`.
+
 ## 0.4.0
 
 - Reintroduce original `function eligible` from 0.2.0 and prior releases.
