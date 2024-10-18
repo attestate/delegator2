@@ -325,8 +325,8 @@ SDK.js
       delegations, otherwise returns false.
 
 
-  eligibleAt(accounts, delegations, address, validationTime)
-  -----------------------------------------
+  eligibleAt(accounts, delegations, params = {address, validationTime, tokenId})
+  ------------------------------------------------------------------------------
 
   This function checks if an Ethereum address is (or has been) eligible based
   on the accounts and delegations.
@@ -334,21 +334,40 @@ SDK.js
   Parameters
 
     - `Object accounts`: An object consisting of holder information. Every key
-      is an Ethereum address that leads to an object with the properties.
-      - `start`: A decimal unix timestamp denoting the time of first receiving
-        a token.
-      - `end`: A decimal unix timestamp denoting the time when a user sent out
-        all of their tokens.
-      - `balance`: The number of tokens an address holds at the moment.
+      is an Ethereum address that leads to an object with the properties. Below
+      is how we expect the accounts object to look like:
+
+      {
+        [address]: {
+          tokens: {
+           [tokenId] : [{
+             start: <decimal-unix-timestamp>,
+             end: <decimal-unix-timestamp>,
+           },
+           //...
+           ],
+           //...
+          },
+          balance: <decimal-number-of-kiwi-passes-held>
+        },
+        ...
+      }
+
     - `Object delegations`: An object mapping 'to' addresses to 'from'
       addresses. The 'from' address must always be part of the allowlist. Both
       'to' and 'from' are Ethereum addresses. This object is expected to be the
       result of the 'organize' function and all included addresses must be
       checksummed.
-    - `string address`: The Ethereum address to check for eligibility. Must be
+    - `Object pararms`:
+      - `string address`: The Ethereum address to check for eligibility. Must be
       check-summed.
-    - `Date validationTime`: The date at which the eligibility check should be
+      - `Date validationTime`: The date at which the eligibility check should be
       made at.
+      - `string tokenId` (optional): The tokenId with which a user makes their
+      claim for eligibility. Please note: After v0.4.0, we made the `eligibleAt`
+      function more precise at evaluating token ownership claims. Omitting the
+      `string tokenId` will evaluate eligibility based on the imprecise v0.4.0
+      logic, whereas submitting the tokenId will precisely evaluate the claim
 
 
   Returns

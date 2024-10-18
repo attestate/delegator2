@@ -5,6 +5,219 @@ import { Wallet } from "@ethersproject/wallet";
 
 import * as sdk from "../src/index.mjs";
 
+test("should return true when validationTime is within a period with no end time", (t) => {
+  const address = "0x0000000000000000000000000000000000000001";
+  const tokenId = 5;
+  const accounts = {
+    [address]: {
+      balance: 1,
+      tokens: {
+        [tokenId]: [
+          {
+            start: 123,
+          },
+        ],
+      },
+    },
+  };
+  const delegations = {};
+  const validationTime = 124;
+
+  t.true(
+    sdk._eligibleAt(accounts, delegations, { address, tokenId, validationTime })
+  );
+});
+
+test("should return true when address is resolved via delegations and period matches", (t) => {
+  const delegatedAddress = "0x0000000000000000000000000000000000000002";
+  const originalAddress = "0x0000000000000000000000000000000000000001";
+  const tokenId = 5;
+  const accounts = {
+    [originalAddress]: {
+      balance: 1,
+      tokens: {
+        [tokenId]: [
+          {
+            start: 123,
+            end: 124,
+          },
+        ],
+      },
+    },
+  };
+  const delegations = {
+    [delegatedAddress]: originalAddress,
+  };
+  const validationTime = 123;
+
+  t.true(
+    sdk._eligibleAt(accounts, delegations, {
+      address: delegatedAddress,
+      tokenId,
+      validationTime,
+    })
+  );
+});
+
+test("should return false when validationTime doesn't match the period of another tokenId", (t) => {
+  const address = "0x0000000000000000000000000000000000000001";
+  const accounts = {
+    [address]: {
+      balance: 1,
+      tokens: {
+        5: [
+          {
+            start: 123,
+            end: 124,
+          },
+        ],
+        6: [
+          {
+            start: 125,
+            end: 126,
+          },
+        ],
+      },
+    },
+  };
+  const delegations = {};
+  const validationTime = 123;
+  const tokenId = 6;
+
+  t.false(
+    sdk._eligibleAt(accounts, delegations, { address, tokenId, validationTime })
+  );
+});
+
+test("should return true for accounts if validation time is within the inclusive range of token period", (t) => {
+  const address = "0x0000000000000000000000000000000000000001";
+  const tokenId = 5;
+  const accounts = {
+    [address]: {
+      balance: 1,
+      tokens: {
+        [tokenId]: [
+          {
+            start: 123,
+            end: 124,
+          },
+        ],
+      },
+    },
+  };
+  const delegations = {};
+  const validationTime = 123;
+
+  t.true(
+    sdk._eligibleAt(accounts, delegations, { address, tokenId, validationTime })
+  );
+});
+
+test("should return false for accounts if tokenId is not owned by the account", (t) => {
+  const address = "0x0000000000000000000000000000000000000001";
+  const tokenId = 6;
+  const accounts = {
+    [address]: {
+      balance: 1,
+      tokens: {
+        5: [
+          {
+            start: 123,
+            end: 124,
+          },
+        ],
+      },
+    },
+  };
+  const delegations = {};
+  const validationTime = 123;
+
+  t.false(
+    sdk._eligibleAt(accounts, delegations, { address, tokenId, validationTime })
+  );
+});
+
+test("throws if address not found in accounts", (t) => {
+  const accounts = {};
+  const address = "0x0000000000000000000000000000000000000001";
+
+  const error = t.throws(() => {
+    sdk.extractLegacyObject(accounts, address);
+  });
+
+  t.is(error.message, "Address not found in accounts");
+});
+
+test("returns undefined for highest end if only start is present", (t) => {
+  const accounts = {
+    "0x0000000000000000000000000000000000000001": {
+      tokens: {
+        1: [{ start: 1 }],
+      },
+      balance: 1,
+    },
+  };
+  const address = "0x0000000000000000000000000000000000000001";
+
+  const result = sdk.extractLegacyObject(accounts, address);
+
+  t.deepEqual(result, { balance: 1, start: 1, end: undefined });
+  t.is(result.end, undefined, "end should explicitly be undefined");
+});
+
+test("correctly extracts period from tokens with overlapping periods", (t) => {
+  const accounts = {
+    "0x0000000000000000000000000000000000000001": {
+      tokens: {
+        1: [
+          { start: 1, end: 2 },
+          { start: 2, end: 3 },
+        ],
+      },
+      balance: 1,
+    },
+  };
+  const address = "0x0000000000000000000000000000000000000001";
+
+  const result = sdk.extractLegacyObject(accounts, address);
+
+  t.deepEqual(result, { balance: 1, start: 1, end: 3 });
+});
+
+test("correctly extracts period from multiple tokens with non-overlapping periods", (t) => {
+  const accounts = {
+    "0x0000000000000000000000000000000000000001": {
+      tokens: {
+        1: [{ start: 1, end: 2 }],
+        2: [{ start: 4, end: 5 }],
+      },
+      balance: 2,
+    },
+  };
+  const address = "0x0000000000000000000000000000000000000001";
+
+  const result = sdk.extractLegacyObject(accounts, address);
+
+  t.deepEqual(result, { balance: 2, start: 1, end: 5 });
+});
+
+test("correctly handles tokens with identical start and end times", (t) => {
+  const accounts = {
+    "0x0000000000000000000000000000000000000001": {
+      tokens: {
+        1: [{ start: 1, end: 1 }],
+        2: [{ start: 2, end: 2 }],
+      },
+      balance: 2,
+    },
+  };
+  const address = "0x0000000000000000000000000000000000000001";
+
+  const result = sdk.extractLegacyObject(accounts, address);
+
+  t.deepEqual(result, { balance: 2, start: 1, end: 2 });
+});
+
 test("should return valid delegation's from", (t) => {
   const address = "0x0000000000000000000000000000000000000001";
   const to = "0x0000000000000000000000000000000000001337";
@@ -62,14 +275,20 @@ test("should return false for accounts if validation time is after account termi
   const accounts = {
     [address]: {
       balance: 1,
-      start: 123,
-      end: 124,
+      tokens: {
+        5: [
+          {
+            start: 123,
+            end: 124,
+          },
+        ],
+      },
     },
   };
   const delegations = {};
 
   const validationTime = 124;
-  t.false(sdk.eligibleAt(accounts, delegations, address, validationTime));
+  t.false(sdk.eligibleAt(accounts, delegations, { address, validationTime }));
 });
 
 test("should return false for accounts if validation time is before account creation", (t) => {
@@ -77,13 +296,19 @@ test("should return false for accounts if validation time is before account crea
   const accounts = {
     [address]: {
       balance: 1,
-      start: 123,
+      tokens: {
+        5: [
+          {
+            start: 123,
+          },
+        ],
+      },
     },
   };
   const delegations = {};
 
   const validationTime = 122;
-  t.false(sdk.eligibleAt(accounts, delegations, address, validationTime));
+  t.false(sdk.eligibleAt(accounts, delegations, { address, validationTime }));
 });
 
 test("should return false for delegation if validation time is after account termination", (t) => {
@@ -92,8 +317,14 @@ test("should return false for delegation if validation time is after account ter
   const accounts = {
     [address]: {
       balance: 1,
-      start: 123,
-      end: 124,
+      tokens: {
+        5: [
+          {
+            start: 123,
+            end: 124,
+          },
+        ],
+      },
     },
   };
   const delegations = {
@@ -101,7 +332,9 @@ test("should return false for delegation if validation time is after account ter
   };
 
   const validationTime = 124;
-  t.false(sdk.eligibleAt(accounts, delegations, to, validationTime));
+  t.false(
+    sdk.eligibleAt(accounts, delegations, { address: to, validationTime })
+  );
 });
 
 test("should return false for delegation if validation time is before account creation", (t) => {
@@ -110,7 +343,13 @@ test("should return false for delegation if validation time is before account cr
   const accounts = {
     [address]: {
       balance: 1,
-      start: 123,
+      tokens: {
+        5: [
+          {
+            start: 123,
+          },
+        ],
+      },
     },
   };
   const delegations = {
@@ -118,7 +357,9 @@ test("should return false for delegation if validation time is before account cr
   };
 
   const validationTime = 122;
-  t.false(sdk.eligibleAt(accounts, delegations, to, validationTime));
+  t.false(
+    sdk.eligibleAt(accounts, delegations, { address: to, validationTime })
+  );
 });
 
 test("should return valid delegation's from for eligibleAt", (t) => {
@@ -127,14 +368,20 @@ test("should return valid delegation's from for eligibleAt", (t) => {
   const accounts = {
     [address]: {
       balance: 1,
-      start: 123,
+      tokens: {
+        5: [
+          {
+            start: 123,
+          },
+        ],
+      },
     },
   };
   const delegations = {
     [to]: address,
   };
 
-  t.is(address, sdk.eligibleAt(accounts, delegations, to));
+  t.is(address, sdk.eligibleAt(accounts, delegations, { address: to }));
 });
 
 test("is not in accounts and not in delegations", (t) => {
@@ -145,7 +392,7 @@ test("is not in accounts and not in delegations", (t) => {
       "0x0000000000000000000000000000000000000666",
   };
 
-  t.false(sdk.eligibleAt(accounts, delegations, address));
+  t.false(sdk.eligibleAt(accounts, delegations, { address }));
 });
 
 test("is delegated to address but from isn't in accounts", (t) => {
@@ -155,7 +402,7 @@ test("is delegated to address but from isn't in accounts", (t) => {
     [address]: "0x0000000000000000000000000000000000000666",
   };
 
-  t.false(sdk.eligibleAt(accounts, delegations, address));
+  t.false(sdk.eligibleAt(accounts, delegations, { address }));
 });
 
 test("eligibleAt should return the address (case-independent) if it is in the accounts", (t) => {
@@ -163,12 +410,20 @@ test("eligibleAt should return the address (case-independent) if it is in the ac
   const accounts = {
     [address]: {
       balance: 1,
-      start: 123,
+      tokens: {
+        5: [
+          {
+            start: 123,
+          },
+        ],
+      },
     },
   };
   const delegations = {};
 
-  const result = sdk.eligibleAt(accounts, delegations, address.toLowerCase());
+  const result = sdk.eligibleAt(accounts, delegations, {
+    address: address.toLowerCase(),
+  });
 
   t.is(result, address);
 });
@@ -178,12 +433,18 @@ test("eligibleAt returns false if address isn't check-summed properly", (t) => {
   const accounts = {
     [address]: {
       balance: 1,
-      start: 123,
+      tokens: {
+        5: [
+          {
+            start: 123,
+          },
+        ],
+      },
     },
   };
   const delegations = {};
 
-  const result = sdk.eligibleAt(accounts, delegations, address);
+  const result = sdk.eligibleAt(accounts, delegations, { address });
 
   t.false(result);
 });

@@ -26,6 +26,39 @@ export function eligible(allowlist, delegations, address) {
   return false;
 }
 
+export function extractLegacyObject(accounts, address) {
+  if (!accounts[address]) {
+    throw new Error("Address not found in accounts");
+  }
+
+  let lowestStart, highestEnd;
+
+  for (const tokenId in accounts[address].tokens) {
+    const periods = accounts[address].tokens[tokenId];
+    periods.forEach((period) => {
+      if (
+        (!lowestStart && period.start) ||
+        (period.start && lowestStart && period.start < lowestStart)
+      ) {
+        lowestStart = period.start;
+      }
+      if (
+        (!highestEnd && period.end) ||
+        (highestEnd && period.end && highestEnd < period.end)
+      ) {
+        highestEnd = period.end;
+      }
+    });
+  }
+  if (!lowestStart) {
+    throw new Error(`No start value for address ${address} found`);
+  }
+
+  const { balance } = accounts[address];
+
+  return { balance, start: lowestStart, end: highestEnd };
+}
+
 // NOTE: The accounts object must be structured as follows:
 //
 // {
@@ -38,42 +71,123 @@ export function eligible(allowlist, delegations, address) {
 // }
 //
 // `start` is the timestamp of receiving the first Kiwi Pass NFT and end is the
-// unix timestamp when no Kiwi Pass NFTs are held anymore.
+// unix timestamp when no Kiwi Pass NFT are held anymore.
 //
-// Additionally, this function can also validate the eligibly of an address for
+// Additionally, this functio can also validate the eligibly of an address for
 // a given historical timestamp. In this case, `validationTime` is set to a
 // date in the past.
-export function eligibleAt(
+function legacyEligibleAt(
   accounts,
   delegations,
   address,
   validationTime = new Date()
 ) {
   address = getAddress(address);
-  const account0 = accounts[address];
-  if (
-    account0 &&
-    account0.balance >= 0 &&
-    (account0.end === undefined || account0.end > validationTime) &&
-    account0.start < validationTime
-  ) {
-    return address;
+
+  try {
+    const account0 = extractLegacyObject(accounts, address);
+    if (
+      account0 &&
+      account0.balance >= 0 &&
+      (account0.end === undefined || account0.end > validationTime) &&
+      account0.start < validationTime
+    ) {
+      return address;
+    }
+  } catch (err) {
+    // NOTE: In the case that we didn't find the address in the accounts object
+    // we move on to looking into the delegations. We only keep throwing if there
+    // are other errors.
+    if (err.message !== "Address not found in accounts") {
+      throw err;
+    }
   }
 
   const from = delegations[address];
   if (!from) return false;
 
-  const account1 = accounts[from];
-  if (
-    account1 &&
-    account1.balance >= 1 &&
-    (account1.end === undefined || account1.end > validationTime) &&
-    account1.start < validationTime
-  ) {
-    return from;
+  try {
+    const account1 = extractLegacyObject(accounts, from);
+    if (
+      account1 &&
+      account1.balance >= 1 &&
+      (account1.end === undefined || account1.end > validationTime) &&
+      account1.start < validationTime
+    ) {
+      return from;
+    }
+  } catch (err) {
+    if (err.message !== "Address not found in accounts") {
+      throw err;
+    }
+    return false;
   }
 
   return false;
+}
+
+// NOTE: The accounts object must be structured as follows:
+//
+// {
+//   [address]: {
+//     tokens: {
+//      [tokenId] : [{
+//        start: <decimal-unix-timestamp>,
+//        end: <decimal-unix-timestamp>,
+//      },
+//      //...
+//      ],
+//      //...
+//     },
+//     balance: <decimal-number-of-kiwi-passes-held>
+//   },
+//   ...
+// }
+export function _eligibleAt(accounts, delegations, params) {
+  const { validationTime, tokenId } = params;
+  let { address } = params;
+
+  address = getAddress(address);
+  let account0 = accounts[address];
+
+  if (!account0) {
+    const identity = delegations[address];
+    if (!(identity in accounts)) return false;
+
+    account0 = accounts[identity];
+  }
+
+  if (!(tokenId in account0.tokens)) return false;
+  const periods = account0.tokens[tokenId];
+  if (!periods || periods.length === 0) return false;
+
+  let isInPeriod = false;
+  for (let period of periods) {
+    if (
+      validationTime >= period.start &&
+      (validationTime <= period.end || !period.end)
+    ) {
+      isInPeriod = true;
+      break;
+    }
+  }
+
+  return isInPeriod;
+}
+
+export function eligibleAt(accounts, delegations, params) {
+  const { validationTime = new Date(), tokenId } = params;
+  let { address } = params;
+
+  if (!tokenId) {
+    return legacyEligibleAt(accounts, delegations, address, validationTime);
+  }
+
+  if (!validationTime) {
+    throw new Error("validationTime property in options input must be set");
+  }
+
+  return _eligibleAt(accounts, delegations, params);
 }
 
 export function organize(payloads, domain = EIP712_DOMAIN) {
