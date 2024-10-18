@@ -1,5 +1,11 @@
 # changelog
 
+## 0.5.1
+
+- For the legacy eligibility calculation, there was a mistake where the
+  inputted accounts object resulted in a bounded possession history, when the
+  user was still holding the token in fact
+
 ## 0.5.0
 
 - Implement precise `eligibleAt` function. A detailed explanation can be found
