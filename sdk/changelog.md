@@ -1,5 +1,12 @@
 # changelog
 
+## 0.6.0
+
+- **BREAKING**: Update `organize` function to support Delegator3 event format
+  - Changed from using `receipt.from` to `sender` parameter from event
+  - Payloads now expected as `{ data, sender }` instead of `{ data, receipt: { from } }`
+  - This aligns with Delegator3's `Delegate(bytes32[3] data, address sender)` event
+
 ## 0.5.1
 
 - For the legacy eligibility calculation, there was a mistake where the

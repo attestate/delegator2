@@ -8,19 +8,19 @@ const EIP712_DOMAIN = {
   name: "kiwinews",
   version: "1.0.0",
   chainId: 10,
-  verifyingContract: "0x08b7ecfac2c5754abafb789c84f8fa37c9f088b0",
+  verifyingContract: "0x418910fef46896eb0bfe38f656e2f7df3eca7198", // Delegator3
   salt: "0xfe7a9d68e99b6942bb3a36178b251da8bd061c20ed1e795207ae97183b590e5b",
 };
 
 export function eligible(allowlist, delegations, address) {
   address = getAddress(address);
-  const allowed0 = allowlist.has(address);
+  const allowed0 = allowlist.includes(address);
   if (allowed0) return address;
 
   const from = delegations[address];
   if (!from) return false;
 
-  const allowed1 = allowlist.has(from);
+  const allowed1 = allowlist.includes(from);
   if (allowed1) return from;
 
   return false;
@@ -205,10 +205,10 @@ export function organize(payloads, domain = EIP712_DOMAIN) {
   const froms = new Set();
   const tos = new Set();
 
-  for (const { data, receipt } of payloads) {
+  for (const { data, sender } of payloads) {
     let delegation;
     try {
-      delegation = validate(data, receipt.from, domain);
+      delegation = validate(data, sender, domain);
     } catch (err) {
       log(`Invalid delegation: ${JSON.stringify(err.message)}`);
       continue;

@@ -483,7 +483,7 @@ test("call organize with a payload where to==from", async (t) => {
 
   const eventLog = {
     data,
-    receipt: { from: to },
+    sender: to,
   };
 
   let result;
@@ -511,14 +511,14 @@ test("call organize with multiple delegations from the same 'from' address to di
   const data0 = await sdk.create(signer0, from, to0, true);
   const log0 = {
     data: data0,
-    receipt: { from: from },
+    sender: from,
   };
 
   const to1 = address1;
   const data1 = await sdk.create(signer1, from, to1, true);
   const log1 = {
     data: data1,
-    receipt: { from: from },
+    sender: from,
   };
 
   let result;
@@ -543,19 +543,19 @@ test("call organize with a successful delegation followed by a revocation, follo
   const data1 = await sdk.create(signer, from, to, true);
   const log1 = {
     data: data1,
-    receipt: { from: from },
+    sender: from,
   };
 
   const data2 = await sdk.create(signer, from, to, false);
   const log2 = {
     data: data2,
-    receipt: { from: from },
+    sender: from,
   };
 
   const data3 = await sdk.create(signer, from, to, true);
   const log3 = {
     data: data3,
-    receipt: { from: from },
+    sender: from,
   };
 
   let result;
@@ -578,13 +578,13 @@ test("call organize with two delegations for the same 'to' address", async (t) =
   const data1 = await sdk.create(signer, from1, to, true);
   const log1 = {
     data: data1,
-    receipt: { from: from1 },
+    sender: from1,
   };
 
   const data2 = await sdk.create(signer, from2, to, true);
   const log2 = {
     data: data2,
-    receipt: { from: from2 },
+    sender: from2,
   };
 
   let result;
@@ -606,13 +606,13 @@ test("call organize with a successful delegation followed by a revocation", asyn
   const data1 = await sdk.create(signerTo, from, to, true);
   const log1 = {
     data: data1,
-    receipt: { from: from },
+    sender: from,
   };
 
   const data2 = await sdk.create(signerTo, from, to, false);
   const log2 = {
     data: data2,
-    receipt: { from: from },
+    sender: from,
   };
 
   let result;
@@ -636,7 +636,7 @@ test("call organize with a revocation payload but no existing delegation", async
 
   const eventLog = {
     data,
-    receipt: { from: from },
+    sender: from,
   };
 
   let result;
@@ -666,7 +666,7 @@ test("call organize with a payload where 'from' address is already a 'to' addres
   const data1 = await sdk.create(signer1, from1, to1, authorize);
   const eventLog1 = {
     data: data1,
-    receipt: { from: from1 },
+    sender: from1,
   };
 
   const from2 = address1;
@@ -674,7 +674,7 @@ test("call organize with a payload where 'from' address is already a 'to' addres
   const data2 = await sdk.create(signer2, from2, to2, authorize);
   const eventLog2 = {
     data: data2,
-    receipt: { from: from2 },
+    sender: from2,
   };
 
   let result;
@@ -704,7 +704,7 @@ test("call organize with a payload where 'to' address is already a 'from' addres
   const data1 = await sdk.create(signer2, from1, to1, authorize);
   const eventLog1 = {
     data: data1,
-    receipt: { from: from1 },
+    sender: from1,
   };
 
   const from2 = address2;
@@ -712,7 +712,7 @@ test("call organize with a payload where 'to' address is already a 'from' addres
   const data2 = await sdk.create(signer1, from2, to2, authorize);
   const eventLog2 = {
     data: data2,
-    receipt: { from: from2 },
+    sender: from2,
   };
 
   let result;
@@ -831,6 +831,6 @@ test("enter empty signature", async (t) => {
   t.is(data.length, 3);
   t.true(parseInt(data[2].slice(-1), 16) === 1);
 
-  const result = sdk.organize([{ data, receipt: { from } }]);
+  const result = sdk.organize([{ data, sender: from }]);
   t.deepEqual(result, {});
 });

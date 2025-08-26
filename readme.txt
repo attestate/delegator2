@@ -60,14 +60,14 @@ Interpretation:
       the above-mentioned procedure; AND
   0.2 if the last bit (`bool authorize`) of `data[2]` is "1"; AND
   0.3 if the `address from` of the `Authorization` message appears as the
-      "from" property on the event log's transaction receipt.
+      "sender" parameter on the event log.
 1. We consider a key revocation by `address from` of `address to` valid if:
   1.1 we can "ecrecover" `address to` (the first 20 bytes of `data[2]`)
       from `data[0]` and `data[1]` (also an EIP-2098 "Compact Signature")
       using the above-mentioned procedure; AND
   1.2 if the last bit (`bool authorize`) of `data[2]` is "0"; AND
   1.3 if the `address from` of the `Authorization` message appears as the
-      "from" property on the event log's transaction receipt.
+      "sender" parameter on the event log.
 
 
 Organize
@@ -168,7 +168,7 @@ Considerations
 --------------
 
 - Indexers are recommended to ignore valid delegations where the `address
-  from`, `address to` and the transaction receipt's "from" property are the
+  from`, `address to` and the event's "sender" parameter are the
   same address to avoid cycles.
 - The transaction running the eth-call and its payload are not replayable on
   other chains as the chain ID is part of the EIP-712 domain separator. They
@@ -231,15 +231,13 @@ SDK.js
   validate(data, from)
   --------------------
 
-  This function validates the data from the event `Authorize(bytes32)` and
-  checks if the from address matches the "from" property from the transaction
-  receipt of the event log.
+  This function validates the data from the event `Delegate(bytes32[3], address)` and
+  checks if the from address matches the "sender" parameter from the event log.
 
   Parameters
 
-    - `bytes32[3] data`: The `data` from the `Authorize(bytes32)` event.
-    - `address from`: The "from" property from the transaction receipt of the
-      event log.
+    - `bytes32[3] data`: The `data` from the `Delegate(bytes32[3], address)` event.
+    - `address from`: The "sender" parameter from the event log.
 
   Returns
 
@@ -284,7 +282,7 @@ SDK.js
   Parameters
 
     - `Object[] payloads`: An array of objects, each containing data from the
-      `Authorize(bytes32)` event and a receipt with a "from" property.
+      `Delegate(bytes32[3], address)` event and a sender address from the event.
     - `string domain`: The EIP-712 domain. Defaults to the internal
       EIP712_DOMAIN.
 
