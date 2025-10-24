@@ -288,9 +288,8 @@ SDK.js
 
   Returns
 
-    - `Object`: An object mapping 'to' addresses to 'from' addresses. The
-      'from' address must always be part of the allowlist. Both 'to' and 'from'
-      are Ethereum addresses. All included addresses are checksummed.
+    - `Object`: An object mapping 'to' addresses to 'from' addresses. Both 'to'
+      and 'from' are Ethereum addresses. All included addresses are checksummed.
 
   Notes
 
@@ -299,79 +298,25 @@ SDK.js
       skipping.
 
 
-  eligible(allowlist, delegations, address)
-  -----------------------------------------
+  resolveIdentity(delegations, address)
+  -------------------------------------
 
-  This function checks if an Ethereum address is CURRENTLY eligible based on
-  the allowlist and delegations.
-
-  Parameters
-
-    - `Set allowlist`: A list of Ethereum addresses that have minted the Kiwi
-      News NFT. Addresses must be check-summed.
-    - `Object delegations`: An object mapping 'to' addresses to 'from'
-      addresses. The 'from' address must always be part of the allowlist. Both
-      'to' and 'from' are Ethereum addresses. This object is expected to be the
-      result of the 'organize' function and all included addresses must be
-      checksummed.
-    - `string address`: The Ethereum address to check for eligibility. Must be
-      check-summed.
-
-  Returns
-
-    - (string|false): Returns the eligible address if found in the allowlist or
-      delegations, otherwise returns false.
-
-
-  eligibleAt(accounts, delegations, params = {address, validationTime, tokenId})
-  ------------------------------------------------------------------------------
-
-  This function checks if an Ethereum address is (or has been) eligible based
-  on the accounts and delegations.
+  This function resolves an Ethereum address to its delegator (if a delegation
+  exists) or returns the address itself (if no delegation exists).
 
   Parameters
 
-    - `Object accounts`: An object consisting of holder information. Every key
-      is an Ethereum address that leads to an object with the properties. Below
-      is how we expect the accounts object to look like:
-
-      {
-        [address]: {
-          tokens: {
-           [tokenId] : [{
-             start: <decimal-unix-timestamp>,
-             end: <decimal-unix-timestamp>,
-           },
-           //...
-           ],
-           //...
-          },
-          balance: <decimal-number-of-kiwi-passes-held>
-        },
-        ...
-      }
-
     - `Object delegations`: An object mapping 'to' addresses to 'from'
-      addresses. The 'from' address must always be part of the allowlist. Both
-      'to' and 'from' are Ethereum addresses. This object is expected to be the
-      result of the 'organize' function and all included addresses must be
-      checksummed.
-    - `Object pararms`:
-      - `string address`: The Ethereum address to check for eligibility. Must be
-      check-summed.
-      - `Date validationTime`: The date at which the eligibility check should be
-      made at.
-      - `string tokenId` (optional): The tokenId with which a user makes their
-      claim for eligibility. Please note: After v0.4.0, we made the `eligibleAt`
-      function more precise at evaluating token ownership claims. Omitting the
-      `string tokenId` will evaluate eligibility based on the imprecise v0.4.0
-      logic, whereas submitting the tokenId will precisely evaluate the claim
-
+      addresses. Both 'to' and 'from' are Ethereum addresses. This object is
+      expected to be the result of the 'organize' function and all included
+      addresses must be checksummed.
+    - `string address`: The Ethereum address to resolve. Must be check-summed.
 
   Returns
 
-    - (string|false): Returns the eligible address if found in the allowlist or
-      delegations, otherwise returns false.
+    - `string`: Returns the delegator address if a delegation exists, otherwise
+      returns the input address itself. This allows addresses to act on their
+      own behalf when no delegation is present.
 
 
 License
