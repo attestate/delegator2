@@ -1,5 +1,9 @@
 # changelog
 
+## 0.7.0
+
+- **BREAKING**: Remove concept of allowlist
+
 ## 0.6.1
 
 - `eligible` falsely expected an array or allowlist, not a Set. This was
